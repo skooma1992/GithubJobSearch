@@ -1,5 +1,6 @@
 import { useReducer, useEffect } from "react";
 import axios from "axios";
+
 const ACTIONS = {
   MAKE_REQUEST: "make_request",
   GET_DATA: "get_data",
@@ -12,7 +13,7 @@ const BASE_URL =
 function reducer(state, action) {
   switch (action.type) {
     case ACTIONS.MAKE_REQUEST:
-      return { loading: true, job: [] };
+      return { loading: true, jobs: [] };
     case ACTIONS.GET_DATA:
       return { ...state, loading: false, jobs: action.payload.jobs };
     case ACTIONS.ERROR:
@@ -39,21 +40,17 @@ export default function useFetchJobs(params, page) {
         cancelToken: cancelToken.token,
         params: { markdown: true, page: page, ...params },
       })
-      .then((res) => {
+      .then(res => {
         dispatch({ type: ACTIONS.GET_DATA, payload: { jobs: res.data } });
       })
-      .catch((e) => {
-        if (axios.isCancel(e))
-          dispatch({ type: ACTIONS.ERROR, payload: { error: e } });
+      .catch(e => {
+        if (axios.isCancel(e)) return;
+        dispatch({ type: ACTIONS.ERROR, payload: { error: e } });
       });
     return () => {
       cancelToken.cancel();
     };
   }, [params, page]);
 
-  return {
-    jobs: [],
-    loading: false,
-    error: false,
-  };
+  return state;
 }
